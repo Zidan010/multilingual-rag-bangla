@@ -20,7 +20,7 @@ The goal is to build a multilingual RAG pipeline that:
 
 | File / Folder        | Description |
 |----------------------|-------------|
-| `pdf_process.py`     | Extracts images from pdf through pdf2image and extract text from images using putesseract. |
+| `pdf_process.py`     | Extracts images from pdf through pdf2image and extract text from images using pytesseract. |
 | `clean.py`           | Cleans extracted text by removing unwanted characters and formatting issues. |
 | `chunking.py`        | Splits cleaned text into chunks using LangChain’s `RecursiveCharacterTextSplitter`. |
 | `create_embedding.py`| Generates embeddings for document chunks using Hugging Face’s `sentence-transformers`. |
