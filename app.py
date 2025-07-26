@@ -97,19 +97,17 @@ def ask_question(data: QueryRequest):
         history = list(chat_memory[user_id])
         short_term = "\n".join([f"User: {q}\nBot: {a}" for q, a in history])
 
-        # Prepare enriched prompt with memory + context
-        prompt = f"""You are a helpful assistant. Use the prior conversation and the following context to answer.
+        prompt = f"""You are a helpful assistant. Answer only in Bengali, using only the provided context. Keep the response short and precise, with no additional explanations or external information. The query may be in English or Bengali, but the answer must always be in Bengali. Use the chat history to understand the context of the query.
 
 Chat History:
 {short_term}
 
-User Question: {data.query}
+User Query: {data.query}
 
 Context:
 {chr(10).join(chunks)}
 
 Answer:"""
-
         response = groq_client.chat.completions.create(
             model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}],
@@ -124,7 +122,7 @@ Answer:"""
         return {
             "query": data.query,
             "answer": answer,
-            "context_used": chunks,
+            # "context_used": chunks,
             "short_term_memory": list(chat_memory[user_id])
         }
     except Exception as e:
