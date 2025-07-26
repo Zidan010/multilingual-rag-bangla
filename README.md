@@ -36,7 +36,6 @@ The goal is to build a multilingual RAG pipeline that:
 ### ✅ Prerequisites
 
 - Python 3.8+
-- Hugging Face account (optional for public models)
 
 ### 🛠 Installation
 
@@ -52,8 +51,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 ```
-
-Ensure the PDF file (`HSC26_Bangla_1st_Paper.pdf`) is placed in the `data/` directory.
 
 ### 🚀 Run the Pipeline
 
@@ -77,12 +74,13 @@ API will be available at: [http://localhost:8000](http://localhost:8000)
 
 ## 🧰 Tools & Libraries Used
 
-- **PyPDF2** – PDF text extraction  
+- **pdf2image** – Image extraction from pdf
+- **pytesseract** - text extraction
 - **LangChain** – Chunking and LLM integration  
-- **Hugging Face Transformers** – Embeddings and LLM  
-  - `l3cube-pune/bengali-sentence-similarity-sbert`  
-  - `hassanaliemon/bn_rag_llama3-8b`  
-- **FAISS** – Fast similarity search for embeddings  
+- **Sentence Transformers** – Embeddings  
+  - `sentence-transformers/paraphrase-multilingual-mpnet-base-v2`  
+- **FAISS** – Fast similarity search for embeddings
+- **GROQ API** - To use LLM for answer generation
 - **FastAPI + Uvicorn** – API backend  
 - **Sentence Transformers** – Semantic vector generation  
 - **Others** – `numpy`, `pandas`, `re`, `pydantic`
@@ -97,22 +95,22 @@ API will be available at: [http://localhost:8000](http://localhost:8000)
 |-------|--------|
 | অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে? | শুম্ভুনাথ |
 | কাকে অনুপমের ভাগ্য দেবতা বলে উল্লেখ করা হয়েছে? | মামাকে |
-| বিয়ের সময় কল্যাণীর প্রকৃত বয়স কত ছিল? | ১৫ বছর |
+| বিয়ের সময় কল্যাণীর প্রকৃত বয়স কত ছিল? | মেয়ের বয়স পনেরো |
 
 ### 🇬🇧 English
 
 | Query | Output |
 |-------|--------|
-| Who is referred to as a handsome man in Anupam's words? | Shumbhunath |
-| Who is mentioned as Anupam's fate deity? | Uncle (Mama) |
-| What was Kalyani's actual age at the time of marriage? | 15 years |
+| Who is referred to as a handsome man in Anupam's words? | শুম্ভুনাথ |
+| Who is mentioned as Anupam's fate deity? | মামাকে |
+| What was Kalyani's actual age at the time of marriage? | মেয়ের বয়স পনেরো  |
 
 ---
 
 ## 🧪 API Documentation
 
 **Endpoint:** `POST /rag`  
-**Description:** Accepts a query and returns a generated answer along with supporting document chunks.
+**Description:** Accepts a query and returns a generated answer along with supporting history chunks.
 
 ### 📨 Request Body
 ```json
@@ -126,9 +124,9 @@ API will be available at: [http://localhost:8000](http://localhost:8000)
 {
   "query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
   "response": "শুম্ভুনাথ",
-  "retrieved_chunks": [
-    "অনুপমের ভাষায় শুম্ভুনাথকে সুপুরুষ বলা হয়েছে।"
-  ]
+  "short_term_memory": [
+      "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
+      "শস্তুনাথবাবুকে।"  ]
 }
 ```
 
@@ -162,34 +160,34 @@ curl -X POST "http://localhost:8000/rag" -H "Content-Type: application/json" -d 
 ## 📥 Submission Questions
 
 ### 1. **Text Extraction Method**
-- **Library**: PyPDF2  
+- **Library**: pdf2image and pytesseract 
 - **Why**: Lightweight and integrates well with Python pipelines  
-- **Challenges**: Bengali character encoding and word merging fixed in `clean.py` with regex
+- **Challenges**: Bengali character encoding in pdf and word merging 
 
 ### 2. **Chunking Strategy**
 - **Method**: LangChain’s `RecursiveCharacterTextSplitter`  
-- **Config**: Chunk size: 500, Overlap: 50  
+- **Config**: Chunk size: 1000, Overlap: 100 `smaller chunks doesn't perform well in retrieval`  
 - **Reason**: Preserves context across chunk boundaries, crucial for Bengali
 
 ### 3. **Embedding Model**
-- **Model**: `l3cube-pune/bengali-sentence-similarity-sbert`  
-- **Why**: Fine-tuned for Bengali; better than general multilingual models  
-- **How**: Uses Sentence-BERT to produce 768-dimensional semantic vectors
+- **Model**: `sentence-transformers/paraphrase-multilingual-mpnet-base-v2`  
+- **Why**: Better than general multilingual models that i tried 
+- **How**: produce 384-dimensional semantic vectors
 
 ### 4. **Similarity Method & Storage**
-- **Comparison**: Cosine similarity  
+- **Comparison**: L2 distance  
 - **Why**: Angular distance is robust for embeddings  
 - **Storage**: FAISS – fast, scalable, optimized for high-dimensional vector search
 
 ### 5. **Meaningful Comparison**
 - **How**: Embeddings from sentence-similarity model + top-k retrieval  
-- **Handling Vagueness**: System may return incorrect info for vague queries; improvements could include query rewriting or clarification prompts
+- **Handling Vagueness**: System may return incorrect info for vague queries though i used multiple contexts; improvements could include query rewriting or clarification prompts
 
 ### 6. **Relevance & Improvements**
-- **Current**: Highly relevant (90% groundedness, 0.82 similarity)  
+- **Current**: Highly relevant (average groundedness, better similarity)  
 - **Suggestions**:
-  - Smaller chunk sizes
-  - Better embedding models (e.g., `paraphrase-multilingual-mpnet-base-v2`)
+  - midium chunk sizes
+  - Better embedding models
   - Larger corpus with diverse topics
   - Query expansion techniques
 
