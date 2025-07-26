@@ -20,14 +20,13 @@ The goal is to build a multilingual RAG pipeline that:
 
 | File / Folder        | Description |
 |----------------------|-------------|
-| `pdf_process.py`     | Extracts text from PDF files using PyPDF2. |
+| `pdf_process.py`     | Extracts images from pdf through pdf2image and extract text from images using putesseract. |
 | `clean.py`           | Cleans extracted text by removing unwanted characters and formatting issues. |
 | `chunking.py`        | Splits cleaned text into chunks using LangChain’s `RecursiveCharacterTextSplitter`. |
 | `create_embedding.py`| Generates embeddings for document chunks using Hugging Face’s `sentence-transformers`. |
 | `indexing.py`        | Indexes embeddings into a FAISS vector store for retrieval. |
 | `retriever.py`       | Retrieves relevant chunks using cosine similarity. |
 | `app.py`             | FastAPI application for user interaction. |
-| `data/`              | Contains the input PDF (`HSC26_Bangla_1st_Paper.pdf`). |
 | `requirements.txt`   | Lists required Python packages. |
 
 ---
