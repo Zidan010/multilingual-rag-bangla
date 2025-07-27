@@ -107,54 +107,95 @@ API will be available at: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## 🧪 API Documentation
+# 📘 API Endpoints Documentation
 
-**Endpoint:** `POST /rag`  
-**Description:** Accepts a query and returns a generated answer along with supporting history chunks.
+---
 
-### 📨 Request Body
+## 1. 🗨️ Ask Question
+
+**Endpoint:** `POST /ask`  
+**Description:** Accepts a query and returns a generated answer in **Bengali**, using context from retrieved chunks and short-term chat memory.
+
+### 📥 Request Body
 ```json
 {
   "query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?"
 }
 ```
 
-### ✅ Response
+### 📤 Response
 ```json
 {
   "query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
-  "response": " শস্তুনাথবাবুকে",
+  "answer": "শস্তুনাথবাবুকে",
   "short_term_memory": [
-      "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
-      "শস্তুনাথবাবুকে।"  ]
+    ["অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?", "শস্তুনাথবাবুকে"]
+  ]
 }
 ```
 
-### 💡 cURL Example
+### 🧪 cURL Example
 ```bash
-curl -X POST "http://localhost:8000/rag" -H "Content-Type: application/json" -d '{"query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?"}'
+curl -X POST "http://localhost:8000/ask" \
+-H "Content-Type: application/json" \
+-d '{"query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?"}'
 ```
 
 ---
 
-## 📊 RAG Evaluation
+## 2. 📊 Evaluate RAG
 
-### 📏 Metrics
+**Endpoint:** `POST /evaluate`  
+**Description:** Evaluates the RAG system by comparing generated answers against expected answers. Returns fuzzy score, semantic similarity, and groundedness.
 
-- **Groundedness**: Whether answers are backed by retrieved text.
-- **Relevance**: Based on cosine similarity between query and chunk embeddings (threshold: 0.7).
+### 📥 Request Body
+```json
+{
+  "cases": [
+    {
+      "query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
+      "expected_answer": "শস্তুনাথবাবুকে"
+    }
+  ]
+}
+```
 
-### 📈 Results
+### 📤 Response
+```json
+{
+  "total": 1,
+  "results": [
+    {
+      "query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?",
+      "expected": "শস্তুনাথবাবুকে",
+      "generated": "শস্তুনাথবাবুকে",
+      "fuzzy_score": 100,
+      "semantic_score": 0.999,
+      "grounded": true
+    }
+  ]
+}
+```
 
-- **Groundedness**: 90% (based on 10 sample queries)
-- **Avg. Cosine Similarity**: 0.82
+### 🧪 cURL Example
+```bash
+curl -X POST "http://localhost:8000/evaluate" \
+-H "Content-Type: application/json" \
+-d '{"cases": [{"query": "অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে?", "expected_answer": "শস্তুনাথবাবুকে"}]}'
+```
 
-| Query | Expected | Answer | Grounded? | Similarity |
-|-------|----------|--------|-----------|------------|
-| অনুপমের ভাষায় সুপুরুষ কাকে বলা হয়েছে? | শুম্ভুনাথ |  শস্তুনাথবাবুকে | ❌ | 0.85 |
-| কাকে অনুপমের ভাগ্য দেবতা বলা হয়েছে? | মামাকে | মামা কে অনুপমের ভাগ্য দেবতা বলে উল্লেখ করা হয়েছে। | ❌ | 0.68 |
-| বিয়ের সময় কল্যাণীর প্রকৃত বয়স কত ছিল? | ১৫ বছর | মেয়ের বয়স পনেরো | ❌ | 0.73 |
+---
 
+## 📝 Notes
+
+- 🔍 The API uses the `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` model for **retrieval** and **semantic similarity evaluation**.
+- 🧠 Answers are generated using the `llama3-70b-8192` model via **Groq API**, with:
+  - `temperature`: `0.4`
+- 💬 The system maintains **short-term memory** of up to **5 previous query-answer pairs per user** for context-aware responses.
+- 📐 `/evaluate` returns the following metrics:
+  - **Fuzzy Score**: Partial text match ratio (Levenshtein-based).
+  - **Semantic Score**: Cosine similarity between embeddings of generated and expected answers.
+  - **Grounded**: Indicates whether the expected answer was found in the retrieved context.
 ---
 
 ## 📥 Submission Questions
